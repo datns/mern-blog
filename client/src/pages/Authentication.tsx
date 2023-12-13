@@ -1,12 +1,14 @@
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {toast, Toaster} from "react-hot-toast";
 import axios from "axios";
 import Input from "../components/input.tsx";
 import googleIcon from "../assets/images/google.png";
 import PageAnimation from "../common/page-animation.tsx";
-import {FormEvent, useRef} from "react";
+import {FormEvent, useContext, useEffect, useRef} from "react";
 import {validateEmail, validatePassword} from "../utils/validation.ts";
 import {storeInSession} from "../common/session.ts";
+import {UserContext} from "../App.tsx";
+import {UserAuth, UserAuthContext} from "../types.ts";
 
 type AuthenticationPageProps = {
 	type: 'sign-up' | 'sign-in'
@@ -14,17 +16,29 @@ type AuthenticationPageProps = {
 
 const AuthenticationPage = ({type}: AuthenticationPageProps) => {
 	const formRef = useRef(null);
+	const { userAuth, setUserAuth } = useContext(UserContext) as UserAuthContext
+
+	const navigate = useNavigate();
+
+	useEffect(() => {
+			if (userAuth?.access_token){
+				navigate("/")
+			}
+	}, [userAuth?.access_token])
 
 	const onSignInOrSignUp = async (formData: Record<string, unknown>) => {
 		try {
-			const result = await axios.post(`${import.meta.env.VITE_SERVER_DOMAIN}/${type.replace("-", "")}`, formData)
+			const result: { data: UserAuth } = await axios.post(`${import.meta.env.VITE_SERVER_DOMAIN}/${type.replace("-", "")}`, formData)
 
 			if (result) {
-				storeInSession("user", JSON.stringify(result))
+				storeInSession("user", JSON.stringify(result.data))
+				setUserAuth(result.data);
 			}
 		} catch (e) {
 			console.log(e);
-			// toast.error(e?.data?.error)
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-expect-error
+			toast.error(e?.data?.error)
 		}
 	}
 
