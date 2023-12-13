@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const connectDB = (url) => {
     mongoose.connect(url, {
-        autoIndex: true
+        autoIndex: true, //make this also true
     })
         .then(() => console.log('connected to mongo'))
         .catch((err) => {

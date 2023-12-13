@@ -6,6 +6,7 @@ import {validateEmail, validatePassword} from "./utils/index.js";
 import User from "./mongodb/models/user.js";
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken';
+import cors from 'cors';
 
 dotenv.config()
 
@@ -13,6 +14,7 @@ const server = express();
 const PORT = 8080;
 
 server.use(express.json())
+server.use(cors())
 
 const formatDatatoSend = (user) => {
     const access_token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET_KEY)
