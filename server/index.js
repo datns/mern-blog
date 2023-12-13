@@ -5,16 +5,19 @@ import connectDB from "./mongodb/connect.js";
 import {validateEmail, validatePassword} from "./utils/index.js";
 import User from "./mongodb/models/user.js";
 import { nanoid } from 'nanoid'
+import jwt from 'jsonwebtoken';
 
 dotenv.config()
 
 const server = express();
-const PORT = 3000;
+const PORT = 8080;
 
 server.use(express.json())
 
 const formatDatatoSend = (user) => {
+    const access_token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET_KEY)
     return {
+        access_token,
         profile_img: user.personal_info.profile_img,
         username: user.personal_info.username,
         fullname: user.personal_info.fullname,
@@ -68,6 +71,32 @@ server.post("/signup", (req, res) => {
     })
 })
 
+server.post("/signin", (req, res) => {
+    const { email, password } = req.body;
+
+    User.findOne({ "personal_info.email": email })
+        .then((user) => {
+            if (!user) {
+                return res.status(403).json({ "error": "Email not found" });
+            }
+
+            bcrypt.compare(password, user.personal_info.password, (err, result) => {
+                if (err) {
+                    return res.status(403).json({ error: "Error occurred while login please try again" });
+                }
+
+                if (!result) {
+                    return res.status(403).json({ error: "Incorrect password "})
+                } else {
+                    return res.status(200).json(formatDatatoSend(user))
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err.message);
+            return res.status(500).json({ error: err.message })
+        })
+})
 const startServer = async () => {
     try {
         connectDB(process.env.MONGODB_URL);
