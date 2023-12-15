@@ -4,11 +4,12 @@ import axios from "axios";
 import Input from "../components/input.tsx";
 import googleIcon from "../assets/images/google.png";
 import PageAnimation from "../common/page-animation.tsx";
-import {FormEvent, useContext, useEffect, useRef} from "react";
+import React, {FormEvent, useContext, useEffect, useRef} from "react";
 import {validateEmail, validatePassword} from "../utils/validation.ts";
 import {storeInSession} from "../common/session.ts";
 import {UserContext} from "../App.tsx";
 import {UserAuth, UserAuthContext} from "../types.ts";
+import {authWithGoogle} from "../common/firebase.ts";
 
 type AuthenticationPageProps = {
 	type: 'sign-up' | 'sign-in'
@@ -19,6 +20,27 @@ const AuthenticationPage = ({type}: AuthenticationPageProps) => {
 	const { userAuth, setUserAuth } = useContext(UserContext) as UserAuthContext
 
 	const navigate = useNavigate();
+
+	const handleGoogleAuth = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+		e.preventDefault();
+		try {
+			const googleResult = await authWithGoogle();
+			console.log('googleResult', googleResult);
+			if (googleResult) {
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				//@ts-expect-error
+				const result: { data: UserAuth } = await axios.post(`${import.meta.env.VITE_SERVER_DOMAIN}/google-auth`, { access_token: googleResult.user?.accessToken })
+				if (result) {
+					storeInSession("user", JSON.stringify(result.data))
+					setUserAuth(result.data);
+				}
+			}
+		} catch (e) {
+			toast.error('trouble login through google');
+			console.log(e);
+		}
+
+	}
 
 	useEffect(() => {
 			if (userAuth?.access_token){
@@ -124,6 +146,7 @@ const AuthenticationPage = ({type}: AuthenticationPageProps) => {
 					</div>
 					<button
 						className="btn-dark flex items-center justify-center gap-4 w-[90%] center"
+						onClick={handleGoogleAuth}
 					>
 						<img src={googleIcon} className="w-5"/>
 						Continue with google
