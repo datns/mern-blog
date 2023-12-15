@@ -1,10 +1,25 @@
 import {Link, Outlet} from "react-router-dom";
 import logo from '../assets/images/logo.png';
-import {useState} from "react";
+import {useContext, useState} from "react";
+import {UserContext} from "../App.tsx";
+import {UserAuthContext} from "../types.ts";
+import UserMenu from "./user-menu.tsx";
 
 const Navbar = () => {
 	const [searchBoxVisibility, setSearchBoxVisibility] = useState<boolean>(false);
+	const [userMenuVisibility, setUserMenuVisibility] = useState(false);
 
+	const toggleUserMenu = () => {
+		setUserMenuVisibility(current => !current)
+	}
+
+	const handleBlur = () => {
+		setTimeout(() => {
+			setUserMenuVisibility(false);
+		}, 200)
+	}
+
+	const {userAuth} = useContext(UserContext) as UserAuthContext;
 	return (
 		<>
 			<nav className="navbar">
@@ -35,13 +50,36 @@ const Navbar = () => {
 						<i className="fi fi-rr-edit"></i>
 						<p>Write</p>
 					</Link>
+					{userAuth?.access_token ? (
+						<>
+							<Link to="/dashboard/notification">
+								<button className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10">
+									<i className="fi fi-rr-bell text-2xl block mt-1">
+									</i>
+								</button>
+							</Link>
 
-					<Link className="btn-dark py-2" to="/signin">
-						Sign In
-					</Link><
-					Link className="btn-light py-2 hidden md:block" to="/signup">
-					Sign Up
-				</Link>
+							<div className="relative" onClick={toggleUserMenu} onBlur={handleBlur}>
+								<button className="w-12 h-12 mt-1">
+									<img src={userAuth?.profile_img} className="w-full h-full object-cover rounded-full"/>
+								</button>
+
+								{userMenuVisibility &&
+                                    <UserMenu/>
+								}
+							</div>
+						</>
+					) : (
+						<>
+							<Link className="btn-dark py-2" to="/signin">
+								Sign In
+							</Link>
+							<Link className="btn-light py-2 hidden md:block" to="/signup">
+								Sign Up
+							</Link>
+						</>
+					)}
+
 				</div>
 			</nav>
 			<Outlet/>
