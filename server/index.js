@@ -7,11 +7,20 @@ import User from "./mongodb/models/user.js";
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import admin from 'firebase-admin';
+import { getAuth } from 'firebase-admin/auth';
+import serviceAccount from './firebase-service-account-key.json' assert { type: "json" }
 
 dotenv.config()
 
 const server = express();
 const PORT = 8080;
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+
 
 server.use(express.json())
 server.use(cors())
@@ -97,6 +106,44 @@ server.post("/signin", (req, res) => {
         .catch(err => {
             console.log(err.message);
             return res.status(500).json({ error: err.message })
+        })
+})
+
+server.post("/google-auth", async (req, res) => {
+    const { access_token } = req.body
+
+    getAuth().verifyIdToken(access_token)
+        .then(async (decodedUser) => {
+            try {
+                const { email, name } = decodedUser;
+
+                let user = await User.findOne({"personal_info.email": email}).select("personal_info.fullname personal_info.username personal_info.profile_img google_auth")
+
+                if (user) {
+                    if (!user.google_auth){
+                        return res.status(403).json({
+                            "error": "This email was signed up without google. Please log in with password to access the account"
+                        })
+                    }
+                }
+                else {
+                    const username = await generateUsername(email);
+
+                    user = new User({
+                        personal_info: { fullname: name, email, username },
+                        google_auth: true
+                    })
+
+                    user = await user.save()
+                }
+
+                return res.status(200).json(formatDatatoSend(user))
+            } catch (err) {
+                return res.status(500).json({"error": err.message})
+            }
+        })
+        .catch(err => {
+            return res.status(500).json({ error: "Failed to authenticate you with google. Try with some other google account"})
         })
 })
 const startServer = async () => {
