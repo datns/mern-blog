@@ -1,13 +1,14 @@
-import {useState} from "react";
+import {useContext} from "react";
 import {Link} from "react-router-dom";
 import {toast} from "react-hot-toast";
 import axios from "axios";
 import PageAnimation from "../common/page-animation.tsx";
 import defaultBanner from "../assets/images/default-banner.png"
 import logo from '../assets/images/logo.png';
+import {EditorContext} from "../pages/Editor.tsx";
 
 const BlogEditor = () => {
-	const [bannerUrl, setBannerUrl] = useState();
+	const editorContext = useContext(EditorContext);
 
 	const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		try {
@@ -20,7 +21,12 @@ const BlogEditor = () => {
 				if (res) {
 					toast.dismiss(loadingToast);
 					toast.success("Uploaded 👍")
-					setBannerUrl(res.data.url);
+					if (editorContext) {
+						editorContext.setBlog({
+							...editorContext.blog,
+							banner: res.data.url
+						})
+					}
 				}
 			}
 		} catch (err) {
@@ -31,7 +37,6 @@ const BlogEditor = () => {
 	}
 
 	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		console.log('e', e);
 		if (e.code === 'Enter') {
 			e.preventDefault();
 		}
@@ -42,6 +47,13 @@ const BlogEditor = () => {
 
 		input.style.height= 'auto';
 		input.style.height = input.scrollHeight + "px";
+
+		if (editorContext) {
+			editorContext.setBlog({
+				...editorContext.blog,
+				title: input.value,
+			})
+		}
 	}
 
 
@@ -53,7 +65,7 @@ const BlogEditor = () => {
 					<img src={logo} />
 				</Link>
 				<p className="max-md:hidden text-black line-clamp-1 w-full">
-					New Blog
+					{editorContext?.blog?.title?.length || 0 > 0 ? editorContext?.blog.title : 'New Blog'}
 				</p>
 
 				<div className="flex gap-4 ml-auto">
@@ -71,7 +83,7 @@ const BlogEditor = () => {
 						<div className="relative aspect-video hover:opacity-80 bg-white border-4 border-grey">
 							<label htmlFor="uploadBanner">
 								<img
-									src={bannerUrl || defaultBanner}
+									src={editorContext?.blog?.banner || defaultBanner}
 									className="z-20"
 								/>
 								<input
@@ -91,8 +103,9 @@ const BlogEditor = () => {
 						onKeyDown={handleTitleKeyDown}
 						onChange={handleTitleChange}
 					>
-
 					</textarea>
+
+					<hr className="w-full opacity-10 my-5" />
 				</section>
 			</PageAnimation>
 		</>
