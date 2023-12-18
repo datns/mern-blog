@@ -1,13 +1,14 @@
+import {useState} from "react";
 import {Link} from "react-router-dom";
-import logo from '../assets/images/logo.png';
+import {toast} from "react-hot-toast";
+import axios from "axios";
 import PageAnimation from "../common/page-animation.tsx";
 import defaultBanner from "../assets/images/default-banner.png"
-import axios from "axios";
-import {useState} from "react";
-import {toast} from "react-hot-toast";
+import logo from '../assets/images/logo.png';
 
 const BlogEditor = () => {
 	const [bannerUrl, setBannerUrl] = useState();
+
 	const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		try {
 			const img = e.target.files![0];
@@ -27,9 +28,23 @@ const BlogEditor = () => {
 			toast.error(String(err));
 			console.log(err);
 		}
-
-
 	}
+
+	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		console.log('e', e);
+		if (e.code === 'Enter') {
+			e.preventDefault();
+		}
+	}
+
+	const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const input = e.target;
+
+		input.style.height= 'auto';
+		input.style.height = input.scrollHeight + "px";
+	}
+
+
 
 	return (
 		<>
@@ -68,6 +83,16 @@ const BlogEditor = () => {
 							</label>
 						</div>
 					</div>
+
+					<textarea
+						placeholder="Blog Title"
+						className="text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight
+						placeholder:opacity-40"
+						onKeyDown={handleTitleKeyDown}
+						onChange={handleTitleChange}
+					>
+
+					</textarea>
 				</section>
 			</PageAnimation>
 		</>
