@@ -10,11 +10,19 @@ import cors from 'cors';
 import admin from 'firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import serviceAccount from './firebase-service-account-key.json' assert { type: "json" }
+import { v2 as cloudinary } from 'cloudinary';
+import Multer from 'multer';
 
 dotenv.config()
 
 const server = express();
-const PORT = 8080;
+const PORT = 8000;
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -24,6 +32,16 @@ admin.initializeApp({
 
 server.use(express.json())
 server.use(cors())
+
+const storage = new Multer.memoryStorage();
+const upload = Multer({ storage });
+
+const handleUpload = async (file) => {
+        const res = await cloudinary.uploader.upload(file, {
+            resource_type: "image",
+        });
+        return res;
+}
 
 const formatDatatoSend = (user) => {
     const access_token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET_KEY)
@@ -145,6 +163,20 @@ server.post("/google-auth", async (req, res) => {
         .catch(err => {
             return res.status(500).json({ error: "Failed to authenticate you with google. Try with some other google account"})
         })
+})
+
+server.post('/upload-image', upload.single("my_file"), async (req, res) => {
+    try {
+        const b64 = Buffer.from(req.file.buffer).toString("base64");
+        console.log("req.file", req.file);
+        let dataUri = "data:" + req.file.mimetype + ";base64," + b64;
+        const cldRes = await handleUpload(dataUri);
+        return res.status(200).json({ url: cldRes.url });
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+
+
 })
 const startServer = async () => {
     try {
