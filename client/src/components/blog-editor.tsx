@@ -17,6 +17,7 @@ const BlogEditor = () => {
 			placeholder: "Let's write an awesome story",
 			tools: tools,
 		})
+		editorContext?.setTextEditor(editor);
 	}, [])
 
 	const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +64,35 @@ const BlogEditor = () => {
 		}
 	}
 
+	const handlePublishEvent = async () => {
+		try {
+			if (!editorContext) {
+				return toast.error("Something went wrong")
+			}
+
+			if (!editorContext?.blog.banner.length) {
+				return toast.error("Upload a blog banner to publish it")
+			}
+
+			if (!editorContext.blog.title) {
+				return toast.error("Write blog title  to publish it")
+			}
+
+			if (editorContext.textEditor?.isReady) {
+				const result  = await editorContext.textEditor.save()
+				console.log('result', result);
+				if (result.blocks.length) {
+					editorContext.setBlog({...editorContext.blog, content: result });
+					editorContext.setEditorState("publish")
+				} else {
+					toast.error("Write something in your blog to publish it")
+				}
+			}
+		} catch (err) {
+			console.log(err)
+		}
+
+	}
 
 
 	return (
@@ -76,7 +106,7 @@ const BlogEditor = () => {
 				</p>
 
 				<div className="flex gap-4 ml-auto">
-					<button className="btn-dark py-2">
+					<button className="btn-dark py-2" onClick={handlePublishEvent}>
 						Publish
 					</button>
 					<button className="btn-light py-2">

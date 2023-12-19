@@ -1,3 +1,5 @@
+import EditorJS, {OutputData} from "@editorjs/editorjs";
+
 export type UserAuth = {
 	"access_token": string;
 	"profile_img": string;
@@ -13,7 +15,7 @@ export type UserAuthContext = {
 export type Blog = {
 	title: string;
 	banner: string;
-	content: string[];
+	content?: OutputData;
 	tags: string[];
 	des: '',
 	author: { personal_info: {}}
@@ -24,4 +26,6 @@ export type BlogContext = {
 	setBlog: (blog: Blog) => void;
 	editorState: "editor" | "publish"
 	setEditorState: (state: "editor" | "publish") => void;
+	textEditor: EditorJS | undefined;
+	setTextEditor: (editor: EditorJS) => void;
 }

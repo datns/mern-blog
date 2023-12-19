@@ -4,11 +4,11 @@ import {Blog, BlogContext, UserAuthContext} from "../types.ts";
 import {Navigate} from "react-router-dom";
 import BlogEditor from "../components/blog-editor.tsx";
 import PublishForm from "../components/publish-form.tsx";
+import EditorJS from "@editorjs/editorjs";
 
 const blogStructure: Blog = {
 	title: '',
 	banner: '',
-	content: [],
 	tags: [],
 	des: '',
 	author: { personal_info: {} }
@@ -17,6 +17,7 @@ const blogStructure: Blog = {
 export const EditorContext = createContext<BlogContext | null>(null);
 const EditorPage = () => {
 	const [editorState, setEditorState] = useState<"editor" | "publish">("editor");
+	const [textEditor, setTextEditor] = useState<EditorJS>();
 	const [blog, setBlog] = useState<Blog>(blogStructure)
 	const { userAuth } = useContext(UserContext) as UserAuthContext;
 
@@ -24,7 +25,7 @@ const EditorPage = () => {
 		return <Navigate to="/signin" />
 
 	return (
-		<EditorContext.Provider value={{ blog, setBlog, editorState, setEditorState }}>
+		<EditorContext.Provider value={{ blog, setBlog, editorState, setEditorState, textEditor, setTextEditor }}>
 			{editorState === "editor" ? <BlogEditor /> : <PublishForm />}
 		</EditorContext.Provider>
 	)
