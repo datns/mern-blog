@@ -1,23 +1,30 @@
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {Link} from "react-router-dom";
 import {toast} from "react-hot-toast";
-import axios from "axios";
 import PageAnimation from "../common/page-animation.tsx";
 import defaultBanner from "../assets/images/default-banner.png"
 import logo from '../assets/images/logo.png';
 import {EditorContext} from "../pages/Editor.tsx";
+import EditorJS from "@editorjs/editorjs";
+import {tools} from "./tools.tsx";
+import uploadImage from "../common/uploadImage.ts";
 
 const BlogEditor = () => {
 	const editorContext = useContext(EditorContext);
+
+	useEffect(() => {
+		const editor = new EditorJS({
+			placeholder: "Let's write an awesome story",
+			tools: tools,
+		})
+	}, [])
 
 	const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		try {
 			const img = e.target.files![0];
 			if (img) {
 				const loadingToast = toast.loading("Uploading...");
-				const data = new FormData();
-				data.append("my_file", img);
-				const res = await axios.post(`${import.meta.env.VITE_SERVER_DOMAIN}/upload-image`, data);
+				const res = await uploadImage(img);
 				if (res) {
 					toast.dismiss(loadingToast);
 					toast.success("Uploaded 👍")
@@ -106,6 +113,10 @@ const BlogEditor = () => {
 					</textarea>
 
 					<hr className="w-full opacity-10 my-5" />
+
+					<div id="editorjs" className="font-gelasio">
+
+					</div>
 				</section>
 			</PageAnimation>
 		</>
