@@ -6,6 +6,7 @@ import {lookInSession} from "./common/session.ts";
 import {UserAuth, UserAuthContext} from "./types.ts";
 import EditorPage from "./pages/Editor.tsx";
 import {Toaster} from "react-hot-toast";
+import HomePage from "./pages/Home.tsx";
 
 export const UserContext = createContext<UserAuthContext | null>(null)
 
@@ -29,6 +30,7 @@ const App = () => {
 			<Routes>
 				<Route path="/editor" element={<EditorPage/>}/>
 				<Route path="/" element={<Navbar/>}>
+					<Route index element={<HomePage/>} />
 					<Route path="signin" element={<AuthenticationPage type="sign-in"/>}/>
 					<Route path="signup" element={<AuthenticationPage type="sign-up"/>}/>
 				</Route>
