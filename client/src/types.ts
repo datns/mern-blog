@@ -17,7 +17,7 @@ export type Blog = {
 	banner: string;
 	content?: OutputData;
 	tags: string[];
-	des: '',
+	des: string;
 	author: { personal_info: {}}
 }
 
