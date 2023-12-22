@@ -3,11 +3,16 @@ import {useContext} from "react";
 import {EditorContext} from "../pages/Editor.tsx";
 import Tag from "./tag.tsx";
 import {toast} from "react-hot-toast";
+import axios from "axios";
+import {UserContext} from "../App.tsx";
+import {useNavigate} from "react-router-dom";
 
 const MAX_CHARACTERS = 200;
 const TAG_LIMIT = 10;
 const PublishForm = () => {
 	const editorContext = useContext(EditorContext);
+	const userContext = useContext(UserContext);
+	const navigate = useNavigate();
 
 	const handleCloseEvent = () => {
 		editorContext?.setEditorState("editor");
@@ -53,6 +58,61 @@ const PublishForm = () => {
 			}
 
 			e.target.value = "";
+		}
+	}
+
+	const publishBlog = async (e: React.MouseEvent<HTMLButtonElement> & { target: HTMLInputElement }) => {
+		try {
+			if (e.target.className.includes("disable")) {
+				return;
+			}
+			if (editorContext?.blog) {
+				const {
+					title, des, tags, banner, content
+				} = editorContext.blog;
+
+				if (!title.length) {
+					return toast.error("Write blog title before publishing")
+				}
+
+				if (!des.length || des.length > MAX_CHARACTERS) {
+					return toast.error(`Write a description about your blog withing ${MAX_CHARACTERS} characters`)
+				}
+
+				if (!tags.length) {
+					return toast.error("Enter at least 1 tag to help us rank your blog")
+				}
+
+				const loadingToast = toast.loading("Publishing...")
+
+				e.target.classList.add('disable');
+
+				const blogObj = {
+					title, banner, des, content, tags, draft: false
+				}
+
+				const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", blogObj,  {
+					headers: {
+						'Authorization': `Bearer ${userContext?.userAuth?.access_token}`
+					}
+				})
+
+				if (result) {
+					e.target.classList.remove('disable');
+					toast.dismiss(loadingToast);
+					toast.success("Published 👍");
+
+					setTimeout(() => {
+						navigate('/')
+					}, 500);
+				}
+			}
+		} catch (err) {
+			e.target.classList.remove('disable');
+			toast.dismiss();
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-expect-error
+			return toast.error(err?.response?.data?.error);
 		}
 	}
 
@@ -130,6 +190,7 @@ const PublishForm = () => {
 
 					<button
 						className="btn-dark px-8"
+						onClick={publishBlog}
 					>
 						Publish
 					</button>
