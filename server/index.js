@@ -209,24 +209,26 @@ server.post('/create-blog', verifyJWT, (req, res) => {
     const {title, des, banner, tags, content, draft} = req.body;
 
     if (!title || title.length === 0) {
-        return res.status(403).json({error: "You must provide a title to publish the blog"});
+        return res.status(403).json({error: "You must provide a title"});
     }
 
-    if (!des || des.length === 0 || des.length > 200) {
-        return res.status(403).json({error: "You must provide description under 200 characters"});
-    }
+    if (!draft) {
+        if (!des || des.length === 0 || des.length > 200) {
+            return res.status(403).json({error: "You must provide description under 200 characters"});
+        }
 
-    if (!banner || banner.length === 0) {
-        return res.status(403).json({error: "You must provide blog banner to publish it"});
-    }
+        if (!banner || banner.length === 0) {
+            return res.status(403).json({error: "You must provide blog banner to publish it"});
+        }
 
-    if (!content || content.blocks.length === 0) {
-        return res.status(403).json({error: "There must be some blog content to publish it"})
-    }
+        if (!content || content.blocks.length === 0) {
+            return res.status(403).json({error: "There must be some blog content to publish it"})
+        }
 
 
-    if (!tags || tags.length === 0 || tags.length > 10) {
-        return res.status(403).json({error: "Provide tags in order to publish the blog, Maxium 10"})
+        if (!tags || tags.length === 0 || tags.length > 10) {
+            return res.status(403).json({error: "Provide tags in order to publish the blog, Maxium 10"})
+        }
     }
 
     const normalizedTags = tags.map(tag => tag.trim().toLowerCase())
