@@ -6,6 +6,7 @@ import Loader from "../components/loader.tsx";
 import {Blog} from "../types.ts";
 import BlogCard from "../components/blog-card.tsx";
 import MinimalBlogCard from "../components/minimal-blog-card.tsx";
+import NoDataMessage from "../components/no-data-message.tsx";
 
 const DEFAULT_ROUTE = [
 	{
@@ -52,7 +53,7 @@ const HomePage = () => {
 				data: {
 					blogs: Blog[]
 				}
-			} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/search-blogs', { tag: pageState })
+			} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/search-blogs', {tag: pageState})
 			setBlogs(result.data.blogs);
 		} catch (err) {
 			console.log(err);
@@ -96,32 +97,39 @@ const HomePage = () => {
 					}, ...DEFAULT_ROUTE]}>
 						{
 							!blogs ? <Loader/> :
-								blogs.map((blog, i) => {
-									return (
-										<PageAnimation
-											key={blog.blog_id}
-											transition={{
-												duration: 1,
-												delay: i * .1
-											}}>
-											<BlogCard data={blog}/>
-										</PageAnimation>)
-								})
+								blogs.length ?
+									blogs.map((blog, i) => {
+										return (
+											<PageAnimation
+												key={blog.blog_id}
+												transition={{
+													duration: 1,
+													delay: i * .1
+												}}>
+												<BlogCard data={blog}/>
+											</PageAnimation>)
+									}) : (
+										<NoDataMessage
+											message="No blogs published"/>
+									)
 						}
 						{/* The filters and trending blogs */}
 						{!trendingBlogs ? <Loader/> :
-							trendingBlogs.map((blog, i) => {
-								return (
-									<PageAnimation
-										transition={{
-											duration: 1,
-											delay: i * .1
-										}}
-										key={blog.blog_id}>
-										<MinimalBlogCard data={blog} index={i}/>
-									</PageAnimation>
+							trendingBlogs.length ?
+								trendingBlogs.map((blog, i) => {
+									return (
+										<PageAnimation
+											transition={{
+												duration: 1,
+												delay: i * .1
+											}}
+											key={blog.blog_id}>
+											<MinimalBlogCard data={blog} index={i}/>
+										</PageAnimation>
+									)
+								}) : (
+									<NoDataMessage message="No trending blogs"/>
 								)
-							})
 						}
 					</InPageNavigation>
 				</div>
@@ -137,7 +145,10 @@ const HomePage = () => {
 							<div className="flex gap-3 flex-wrap">
 								{
 									CATEGORIES.map((category, i) => {
-										return <button className={`tag ${pageState === category && 'bg-black text-white'}`} key={i} onClick={() => loadBlogByCategory(category)}>
+										return <button
+											className={`tag ${pageState === category && 'bg-black text-white'}`}
+											key={i}
+											onClick={() => loadBlogByCategory(category)}>
 											{category}
 										</button>
 									})
@@ -148,20 +159,22 @@ const HomePage = () => {
 							<h1 className="font-medium text-xl mb-8">Trending <i
 								className="fi fi-rr-arrow-trend-up"></i></h1>
 							{!trendingBlogs ? <Loader/> :
-								trendingBlogs.map((blog, i) => {
-									return (
-										<PageAnimation
-											transition={{
-												duration: 1,
-												delay: i * .1
-											}}
-											key={blog.blog_id}>
-											<MinimalBlogCard
-												data={blog}
-												index={i}/>
-										</PageAnimation>
-									)
-								})
+								trendingBlogs.length ?
+									trendingBlogs.map((blog, i) => {
+										return (
+											<PageAnimation
+												transition={{
+													duration: 1,
+													delay: i * .1
+												}}
+												key={blog.blog_id}>
+												<MinimalBlogCard
+													data={blog}
+													index={i}/>
+											</PageAnimation>
+										)
+									}) : <NoDataMessage
+										message="No trending blogs"/>
 							}
 						</div>
 					</div>

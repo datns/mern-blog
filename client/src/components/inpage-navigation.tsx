@@ -12,7 +12,6 @@ const InPageNavigation = ({routes, children}: InPageNavigationProps) => {
 	const activeTabIndex = useRef<HTMLHRElement | null>(null);
 	const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-	console.log('tabRefs', tabRefs.current);
 	useEffect(() => {
 		const currentTab = tabRefs.current[index];
 		const hrTag = activeTabIndex.current;
