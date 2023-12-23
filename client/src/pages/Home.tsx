@@ -1,12 +1,13 @@
 import PageAnimation from "../common/page-animation.tsx";
 import InPageNavigation from "../components/inpage-navigation.tsx";
 import axios from "axios";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import Loader from "../components/loader.tsx";
 import {Blog} from "../types.ts";
 import BlogCard from "../components/blog-card.tsx";
 import MinimalBlogCard from "../components/minimal-blog-card.tsx";
 import NoDataMessage from "../components/no-data-message.tsx";
+import LoadMore from "../components/load-more.tsx";
 
 const DEFAULT_ROUTE = [
 	{
@@ -20,16 +21,42 @@ const HomePage = () => {
 	const [blogs, setBlogs] = useState<Blog[] | null>(null);
 	const [trendingBlogs, setTrendingBlogs] = useState<Blog[] | null>(null);
 	const [pageState, setPageState] = useState<string>("home")
-
-	const fetchLatestBlogs = async () => {
+	const paginationRef = useRef<{
+		totalDocs: number;
+		page: number;
+	} | null>(null)
+	const fetchLatestBlogs = async ({page = 1}: { page: number }) => {
 		try {
 			const result: {
 				data: {
-					blogs: Blog[]
+					blogs: Blog[];
+					totalDocs: number;
+					page: number;
 				}
-			} = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + '/latest-blogs')
-			setBlogs(result.data.blogs);
-		} catch (err) {
+			} = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + '/latest-blogs', {
+				params: {
+					page
+				}
+			})
+			if (result) {
+				if (page <= 1) {
+					setBlogs(result.data.blogs);
+				} else {
+					setBlogs(current => {
+							return [
+								...(current || []),
+								...result.data.blogs
+							]
+						}
+					)
+				}
+				paginationRef.current = {
+					totalDocs: result.data.totalDocs,
+					page: result.data.page,
+				}
+			}
+		} catch
+			(err) {
 			console.log(err);
 		}
 	}
@@ -62,7 +89,7 @@ const HomePage = () => {
 
 	useEffect(() => {
 		if (pageState === 'home') {
-			fetchLatestBlogs()
+			fetchLatestBlogs({page: 1})
 
 		}
 		if (!trendingBlogs) {
@@ -86,6 +113,13 @@ const HomePage = () => {
 
 	}
 
+	const handleLoadMore = async () => {
+		await fetchLatestBlogs({
+			page: (paginationRef?.current?.page || 0)
+				+ 1
+		});
+	}
+
 	return (
 		<PageAnimation>
 			<section className="h-cover flex justify-center gap-10">
@@ -95,24 +129,29 @@ const HomePage = () => {
 						name: pageState,
 						hidden: false
 					}, ...DEFAULT_ROUTE]}>
-						{
-							!blogs ? <Loader/> :
-								blogs.length ?
-									blogs.map((blog, i) => {
-										return (
-											<PageAnimation
-												key={blog.blog_id}
-												transition={{
-													duration: 1,
-													delay: i * .1
-												}}>
-												<BlogCard data={blog}/>
-											</PageAnimation>)
-									}) : (
-										<NoDataMessage
-											message="No blogs published"/>
-									)
-						}
+						<>
+							{
+								!blogs ? <Loader/> :
+									blogs.length ?
+										blogs.map((blog, i) => {
+											return (
+												<PageAnimation
+													key={blog.blog_id}
+													transition={{
+														duration: 1,
+														delay: i * .1
+													}}>
+													<BlogCard data={blog}/>
+												</PageAnimation>)
+										}) : (
+											<NoDataMessage
+												message="No blogs published"/>
+										)
+							}
+							<LoadMore
+								visible={!!blogs && ((paginationRef?.current?.totalDocs || 0) > blogs?.length)}
+								onClick={handleLoadMore}/>
+						</>
 						{/* The filters and trending blogs */}
 						{!trendingBlogs ? <Loader/> :
 							trendingBlogs.length ?
@@ -124,7 +163,10 @@ const HomePage = () => {
 												delay: i * .1
 											}}
 											key={blog.blog_id}>
-											<MinimalBlogCard data={blog} index={i}/>
+											<MinimalBlogCard
+												data={blog}
+												index={i}
+											/>
 										</PageAnimation>
 									)
 								}) : (
@@ -157,7 +199,8 @@ const HomePage = () => {
 						</div>
 						<div>
 							<h1 className="font-medium text-xl mb-8">Trending <i
-								className="fi fi-rr-arrow-trend-up"></i></h1>
+								className="fi fi-rr-arrow-trend-up"></i>
+							</h1>
 							{!trendingBlogs ? <Loader/> :
 								trendingBlogs.length ?
 									trendingBlogs.map((blog, i) => {
