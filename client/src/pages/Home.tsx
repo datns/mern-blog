@@ -25,6 +25,7 @@ const HomePage = () => {
 		totalDocs: number;
 		page: number;
 	} | null>(null)
+
 	const fetchLatestBlogs = async ({page = 1}: { page: number }) => {
 		try {
 			const result: {
@@ -74,14 +75,38 @@ const HomePage = () => {
 		}
 	}
 
-	const fetchBlogsByCategory = async () => {
+	const fetchBlogsByCategory = async ({page = 1}: { page: number }) => {
 		try {
 			const result: {
 				data: {
-					blogs: Blog[]
+					totalDocs: number;
+					blogs: Blog[];
+					page: number;
 				}
-			} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + '/search-blogs', {tag: pageState})
-			setBlogs(result.data.blogs);
+			} = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + '/search-blogs', {
+				params: {
+					tag: pageState,
+					page,
+				}
+			})
+
+			if (result) {
+				if (page <= 1) {
+					setBlogs(result.data.blogs);
+				} else {
+					setBlogs(current => {
+							return [
+								...(current || []),
+								...result.data.blogs
+							]
+						}
+					)
+				}
+				paginationRef.current = {
+					totalDocs: result.data.totalDocs,
+					page: result.data.page,
+				}
+			}
 		} catch (err) {
 			console.log(err);
 		}
@@ -95,7 +120,7 @@ const HomePage = () => {
 		if (!trendingBlogs) {
 			fetchTrendingBlogs()
 		} else {
-			fetchBlogsByCategory()
+			fetchBlogsByCategory({ page: 1 })
 		}
 	}, [pageState, trendingBlogs]);
 
@@ -113,11 +138,16 @@ const HomePage = () => {
 
 	}
 
-	const handleLoadMore = async () => {
-		await fetchLatestBlogs({
+	const handleLoadMore =  () => {
+		if (pageState === 'home')
+			return fetchLatestBlogs({
 			page: (paginationRef?.current?.page || 0)
 				+ 1
 		});
+		return fetchBlogsByCategory({
+			page: (paginationRef?.current?.page || 0)
+				+ 1
+		})
 	}
 
 	return (
