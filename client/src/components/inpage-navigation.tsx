@@ -12,6 +12,7 @@ const InPageNavigation = ({routes, children}: InPageNavigationProps) => {
 	const activeTabIndex = useRef<HTMLHRElement | null>(null);
 	const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
+	console.log('tabRefs', tabRefs.current);
 	useEffect(() => {
 		const currentTab = tabRefs.current[index];
 		const hrTag = activeTabIndex.current;
@@ -19,7 +20,7 @@ const InPageNavigation = ({routes, children}: InPageNavigationProps) => {
 			hrTag.style.width = currentTab?.offsetWidth + 'px';
 			hrTag.style.left = currentTab?.offsetLeft + 'px';
 		}
-	}, [index]);
+	}, [index, routes]);
 
 	const changePageState = (i: number) => {
 		setIndex(i);
@@ -33,7 +34,12 @@ const InPageNavigation = ({routes, children}: InPageNavigationProps) => {
 				{routes.map((route, i) => {
 					return (
 						<button
-							ref={r => tabRefs?.current.push(r)}
+							ref={r => {
+								const current = tabRefs?.current;
+								current[i] = r;
+							}
+						}
+							id={route.name}
 							key={route.name}
 							className={`p-4 px-5 capitalize ${index === i ? 'text-black' : 'text-dark-grey'} ${route.hidden && 'md:hidden'}`}
 							onClick={() => {
