@@ -1,11 +1,11 @@
 import EditorJS, {OutputData} from "@editorjs/editorjs";
 
 export type UserAuth = {
-	"access_token": string;
-	"profile_img": string;
-	"username": string;
-	"fullname": string;
-} | { "access_token": null }
+	access_token: string;
+	profile_img: string;
+	username: string;
+	fullname: string;
+} | { access_token: null }
 
 export type UserAuthContext = {
 	userAuth: UserAuth | undefined;
@@ -17,7 +17,22 @@ export type User = {
 		fullname: string;
 		profile_img: string;
 		username: string;
-	}
+		bio: string;
+	},
+	social_links: {
+		youtube: string;
+		instagram: string;
+		facebook: string;
+		twitter: string;
+		github: string;
+		website: string;
+	},
+	account_info: {
+		total_posts: number,
+		total_reads: number;
+	},
+	joinedAt: string;
+	_id: string;
 }
 
 export type Blog = {

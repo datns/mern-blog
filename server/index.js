@@ -217,6 +217,20 @@ server.get("/search-users", (req, res) => {
         })
 })
 
+server.get("/get-profile", (req, res) => {
+    const username = req.query.username;
+
+    User.findOne({ "personal_info.username": username})
+        .select("-personal_info.password -google_auth -updatedAt -blogs")
+        .then(user => {
+            return res.status(200).json(user)
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({ error: err.message })
+        })
+})
+
 server.post('/create-blog', verifyJWT, (req, res) => {
     const authorId = req.user;
 
@@ -316,6 +330,7 @@ server.get("/search-blogs", (req, res) => {
     const tag = req.query.tag;
     const page = parseInt(req.query.page);
     const query = req.query.query;
+    const author = req.query.author;
 
     let findQuery;
 
@@ -323,6 +338,8 @@ server.get("/search-blogs", (req, res) => {
         findQuery = { tags: tag, draft: false, };
     else if (query)
         findQuery = { draft: false, title: new RegExp(query, 'i')}
+    else if (author)
+        findQuery = { draft: false, author }
     const maxLimit = 5;
 
     Blog.find(findQuery)
