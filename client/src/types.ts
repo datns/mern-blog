@@ -9,7 +9,7 @@ export type UserAuth = {
 
 export type UserAuthContext = {
 	userAuth: UserAuth | undefined;
-	setUserAuth:  React.Dispatch<React.SetStateAction<UserAuth | undefined>>
+	setUserAuth: React.Dispatch<React.SetStateAction<UserAuth | undefined>>
 }
 
 export type Blog = {
@@ -18,7 +18,18 @@ export type Blog = {
 	content?: OutputData;
 	tags: string[];
 	des: string;
-	author: { personal_info: {}}
+	author: {
+		personal_info: {
+			fullname: string;
+			profile_img: string;
+			username: string;
+		}
+	};
+	publishedAt: string;
+	activity: {
+		total_likes: number;
+	};
+	blog_id: string;
 }
 
 export type BlogContext = {

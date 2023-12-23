@@ -261,7 +261,7 @@ server.post('/create-blog', verifyJWT, (req, res) => {
     })
 })
 
-server.get('/latest-blog', (req, res) => {
+server.get('/latest-blogs', (req, res) => {
     let maxLimit = 5;
     Blog.find({ draft: false })
         .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
