@@ -7,6 +7,7 @@ import {UserAuth, UserAuthContext} from "./types.ts";
 import EditorPage from "./pages/Editor.tsx";
 import {Toaster} from "react-hot-toast";
 import HomePage from "./pages/Home.tsx";
+import SearchPage from "./pages/Search.tsx";
 
 export const UserContext = createContext<UserAuthContext | null>(null)
 
@@ -33,6 +34,7 @@ const App = () => {
 					<Route index element={<HomePage/>} />
 					<Route path="signin" element={<AuthenticationPage type="sign-in"/>}/>
 					<Route path="signup" element={<AuthenticationPage type="sign-up"/>}/>
+					<Route path="search/:query" element={<SearchPage />}/>
 				</Route>
 			</Routes>
 		</UserContext.Provider>

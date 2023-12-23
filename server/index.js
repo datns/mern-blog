@@ -301,9 +301,15 @@ server.get('/trending-blogs', (req, res) => {
 server.get("/search-blogs", (req, res) => {
     const tag = req.query.tag;
     const page = parseInt(req.query.page);
+    const query = req.query.query;
 
-    const findQuery = { tags: tag, draft: false, };
-    const maxLimit = 1;
+    let findQuery;
+
+    if (tag)
+        findQuery = { tags: tag, draft: false, };
+    else if (query)
+        findQuery = { draft: false, title: new RegExp(query, 'i')}
+    const maxLimit = 5;
 
     Blog.find(findQuery)
         .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
