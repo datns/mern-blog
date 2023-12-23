@@ -12,19 +12,21 @@ export type UserAuthContext = {
 	setUserAuth: React.Dispatch<React.SetStateAction<UserAuth | undefined>>
 }
 
+export type User = {
+	personal_info: {
+		fullname: string;
+		profile_img: string;
+		username: string;
+	}
+}
+
 export type Blog = {
 	title: string;
 	banner: string;
 	content?: OutputData;
 	tags: string[];
 	des: string;
-	author: {
-		personal_info: {
-			fullname: string;
-			profile_img: string;
-			username: string;
-		}
-	};
+	author: User;
 	publishedAt: string;
 	activity: {
 		total_likes: number;
