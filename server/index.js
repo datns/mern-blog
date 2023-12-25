@@ -206,28 +206,28 @@ server.post('/upload-image', upload.single("my_file"), async (req, res) => {
 server.get("/search-users", (req, res) => {
     const query = req.query.query;
 
-    User.find({ "personal_info.username": new RegExp(query, 'i')})
+    User.find({"personal_info.username": new RegExp(query, 'i')})
         .limit(50)
         .select("personal_info.fullname personal_info.username personal_info.profile_img -_id")
         .then(users => {
-            return res.status(200).json({ users })
+            return res.status(200).json({users})
         })
         .catch(err => {
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({error: err.message});
         })
 })
 
 server.get("/get-profile", (req, res) => {
     const username = req.query.username;
 
-    User.findOne({ "personal_info.username": username})
+    User.findOne({"personal_info.username": username})
         .select("-personal_info.password -google_auth -updatedAt -blogs")
         .then(user => {
             return res.status(200).json(user)
         })
         .catch(err => {
             console.log(err);
-            return res.status(500).json({ error: err.message })
+            return res.status(500).json({error: err.message})
         })
 })
 
@@ -285,21 +285,21 @@ server.post('/create-blog', verifyJWT, (req, res) => {
             return res.status(500).json({error: "Fail to update total posts number"})
         })
     }).catch(err => {
-        return res.status(500).json({ error: err.message })
+        return res.status(500).json({error: err.message})
     })
 })
 
 server.get('/latest-blogs', (req, res) => {
-    const page =  parseInt(req.query.page);
+    const page = parseInt(req.query.page);
     const maxLimit = 5;
-    Blog.find({ draft: false })
+    Blog.find({draft: false})
         .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
         .sort({"publishedAt": -1})
         .select("blog_id title des banner activity tags publishedAt -_id")
         .skip((page - 1) * maxLimit)
         .limit(maxLimit)
         .then(blogs => {
-            Blog.find({ draft: false }).countDocuments().then(count => {
+            Blog.find({draft: false}).countDocuments().then(count => {
                 return res.status(200).json({
                     totalDocs: count,
                     blogs,
@@ -308,21 +308,25 @@ server.get('/latest-blogs', (req, res) => {
             })
         })
         .catch(err => {
-            return res.status(500).json({ error: err.message })
+            return res.status(500).json({error: err.message})
         })
 })
 
 server.get('/trending-blogs', (req, res) => {
-    Blog.find({ draft: false})
+    Blog.find({draft: false})
         .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
-        .sort({ "activity.total_reads": -1, "activity.total_likes": -1, "publisedAt": -1 })
+        .sort({
+            "activity.total_reads": -1,
+            "activity.total_likes": -1,
+            "publisedAt": -1
+        })
         .select("blog_id title publishedAt -_id")
         .limit(5)
         .then(blogs => {
-            return res.status(200).json({ blogs })
+            return res.status(200).json({blogs})
         })
         .catch(err => {
-            return res.status(500).json({ error: err.message })
+            return res.status(500).json({error: err.message})
         })
 })
 
@@ -331,16 +335,18 @@ server.get("/search-blogs", (req, res) => {
     const page = parseInt(req.query.page);
     const query = req.query.query;
     const author = req.query.author;
+    const limit = req.query.limit;
+    const eliminate_blog = req.query.eliminate_blog;
 
     let findQuery;
 
     if (tag)
-        findQuery = { tags: tag, draft: false, };
+        findQuery = {tags: tag, draft: false, blog_id: { $ne: eliminate_blog }};
     else if (query)
-        findQuery = { draft: false, title: new RegExp(query, 'i')}
+        findQuery = {draft: false, title: new RegExp(query, 'i')}
     else if (author)
-        findQuery = { draft: false, author }
-    const maxLimit = 5;
+        findQuery = {draft: false, author}
+    const maxLimit = limit || 5;
 
     Blog.find(findQuery)
         .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -358,7 +364,32 @@ server.get("/search-blogs", (req, res) => {
             })
         })
         .catch(err => {
-            return res.status(500).json({ error: err.message })
+            return res.status(500).json({error: err.message})
+        })
+})
+
+server.get("/get-blog", (req, res) => {
+    const blog_id = req.query.blog_id;
+
+    console.log('blog_id', blog_id)
+
+    const incrementVal = 1;
+
+    Blog.findOneAndUpdate({blog_id}, {$inc: {"activity.total_reads": incrementVal}})
+        .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+        .select("title des content banner activity publishedAt blog_id tags")
+        .then(blog => {
+            User.findOneAndUpdate({"personal_info.username": blog.author.personal_info.username}, {
+                $inc: {"account_info.total_reads": incrementVal}
+            })
+                .catch(err => {
+                    return res.status(500).json({error: err.message})
+                })
+
+            return res.status(200).json({blog})
+        })
+        .catch(err => {
+            return res.status(500).json({error: err.message})
         })
 })
 

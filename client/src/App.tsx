@@ -10,6 +10,7 @@ import HomePage from "./pages/Home.tsx";
 import SearchPage from "./pages/Search.tsx";
 import NotFoundPage from "./pages/NotFound.tsx";
 import ProfilePage from "./pages/Profile.tsx";
+import BlogPage from "./pages/Blog.tsx";
 
 export const UserContext = createContext<UserAuthContext | null>(null)
 
@@ -38,6 +39,7 @@ const App = () => {
 					<Route path="signup" element={<AuthenticationPage type="sign-up"/>}/>
 					<Route path="search/:query" element={<SearchPage />}/>
 					<Route path="user/:id" element={<ProfilePage />}/>
+					<Route path="blog/:blog_id" element={<BlogPage />}/>
 					<Route path='*' element={<NotFoundPage />} />
 				</Route>
 			</Routes>

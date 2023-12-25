@@ -45,6 +45,7 @@ export type Blog = {
 	publishedAt: string;
 	activity: {
 		total_likes: number;
+		total_comments: number;
 	};
 	blog_id: string;
 }
