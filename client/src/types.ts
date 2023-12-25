@@ -38,7 +38,7 @@ export type User = {
 export type Blog = {
 	title: string;
 	banner: string;
-	content?: OutputData;
+	content: OutputData[];
 	tags: string[];
 	des: string;
 	author: User;

@@ -7,6 +7,7 @@ import PageAnimation from "../common/page-animation.tsx";
 import {format} from "date-fns/format";
 import BlogInteraction from "../components/blog-interaction.tsx";
 import BlogCard from "../components/blog-card.tsx";
+import BlogContent from "../components/blog-content.tsx";
 
 export const BlogContext = createContext<{
 	blog: Blog,
@@ -71,7 +72,8 @@ const BlogPage = () => {
 		title,
 		author: {personal_info: {profile_img, fullname, username}},
 		banner,
-		publishedAt
+		publishedAt,
+		content,
 	} = blog;
 
 	return (
@@ -106,6 +108,16 @@ const BlogPage = () => {
 					</div>
 
 					<BlogInteraction/>
+
+					<div className="my-12 font-gelasio blog-page-content">
+						{content[0].blocks.map((block) => {
+							return (
+								<div key={block.id} className="my-4 md:my-8">
+									<BlogContent block={block} />
+								</div>
+							)
+						})}
+					</div>
 
 					<BlogInteraction/>
 
