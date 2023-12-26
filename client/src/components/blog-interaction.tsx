@@ -1,26 +1,86 @@
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {BlogContext} from "../pages/Blog.tsx";
 import {Link} from "react-router-dom";
 import {UserContext} from "../App.tsx";
+import {toast} from "react-hot-toast";
+import axios from "axios";
 
 const BlogInteraction = () => {
 	const blogContext = useContext(BlogContext);
 	const userContext = useContext(UserContext);
+
+	console.log('liked', blogContext?.liked);
+
+	useEffect(() => {
+		async function checkLikeStatus() {
+			try {
+				const result = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + '/isliked-by-user', {
+					params: {
+						_id: blogContext?.blog._id,
+					},
+					headers: {
+						'Authorization': `Bearer ${userContext?.userAuth?.access_token}`
+					}
+				})
+
+
+				blogContext?.setLiked(!!result.data.result)
+			} catch (err) {
+				console.log(err);
+			}
+		}
+		if (userContext?.userAuth?.access_token && blogContext?.blog) {
+			checkLikeStatus();
+		}
+	}, [userContext?.userAuth?.access_token, blogContext?.blog._id]);
+
 	if (!blogContext) return null;
 
 	const {
 		blog: {title, author, activity: {total_likes, total_comments}, blog_id},
-		setBlog
+		setBlog, liked, setLiked
 	} = blogContext;
+
+	const handleLike = async () => {
+		try {
+			if (userContext?.userAuth?.access_token) {
+				setLiked(current => !current);
+				setBlog(currentBlog => ({
+					...currentBlog,
+					activity: {
+						...currentBlog.activity,
+						total_likes: !liked ? currentBlog.activity.total_likes + 1 : currentBlog.activity.total_likes - 1
+					}
+				}))
+
+				const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/like-blog", {
+					_id: blogContext?.blog._id,
+					liked,
+				}, {
+					headers: {
+						'Authorization': `Bearer ${userContext.userAuth.access_token}`
+					}
+				})
+
+				console.log('result', result);
+			} else {
+				toast.error("please login to like this blog");
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
 	return (
 		<>
 			<hr className="border-grey my-2"/>
 			<div className="flex gap-6 justify-between">
 				<div className="flex gap-3 items-center">
 					<button
-						className="w-10 h-10 rounded-full flex items-center justify-center bg-grey/80"
+						onClick={handleLike}
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${liked ? 'bg-red/20 text-red': "bg-grey/80" }`}
 					>
-						<i className="fi fi-rr-heart"></i>
+						<i className={`fi ${liked ? 'fi-sr-heart' : ' fi-rr-heart'}`}></i>
 					</button>
 					<p className="text-xl text-dark-grey">{total_likes}</p>
 

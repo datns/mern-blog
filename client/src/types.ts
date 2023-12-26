@@ -36,6 +36,7 @@ export type User = {
 }
 
 export type Blog = {
+	_id: string;
 	title: string;
 	banner: string;
 	content: OutputData[];

@@ -1,6 +1,6 @@
 import {Link, useParams} from "react-router-dom";
 import axios from "axios";
-import {createContext, useEffect, useState} from "react";
+import React, {createContext, useEffect, useState} from "react";
 import {Blog} from "../types.ts";
 import Loader from "../components/loader.tsx";
 import PageAnimation from "../common/page-animation.tsx";
@@ -10,14 +10,18 @@ import BlogCard from "../components/blog-card.tsx";
 import BlogContent from "../components/blog-content.tsx";
 
 export const BlogContext = createContext<{
-	blog: Blog,
-	setBlog: (blog: Blog) => void
+	blog: Blog;
+	setBlog: React.Dispatch<React.SetStateAction<Blog | null>>;
+	liked: boolean;
+	setLiked: React.Dispatch<React.SetStateAction<boolean>>;
 } | null>(null);
 const BlogPage = () => {
 	const {blog_id} = useParams();
 	const [blog, setBlog] = useState<Blog | null>(null);
 	const [similarBlogs, setSimilarBlogs] = useState<Blog[] | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [liked, setLiked] = useState<boolean>(false);
+
 	useEffect(() => {
 		setSimilarBlogs(null)
 		setBlog(null);
@@ -78,7 +82,7 @@ const BlogPage = () => {
 
 	return (
 		<PageAnimation>
-			<BlogContext.Provider value={{blog, setBlog}}>
+			<BlogContext.Provider value={{blog, setBlog, liked, setLiked}}>
 				<div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
 					<img src={banner} className="aspect-video"/>
 					<div className="mt-12">
