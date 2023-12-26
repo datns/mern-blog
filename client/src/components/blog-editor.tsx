@@ -1,5 +1,5 @@
 import {useContext, useEffect} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {toast} from "react-hot-toast";
 import PageAnimation from "../common/page-animation.tsx";
 import defaultBanner from "../assets/images/default-banner.png"
@@ -14,14 +14,15 @@ import {UserContext} from "../App.tsx";
 const BlogEditor = () => {
 	const editorContext = useContext(EditorContext);
 	const userContext = useContext(UserContext);
-	const navigate = useNavigate()
+	const navigate = useNavigate();
+	const {blog_id} = useParams();
 
 	useEffect(() => {
 		if (!editorContext?.textEditor?.isReady) {
 			const editor = new EditorJS({
 				placeholder: "Let's write an awesome story",
 				tools: tools,
-				data: editorContext?.blog.content,
+				data: Array.isArray(editorContext?.blog.content) ? editorContext?.blog.content[0] : editorContext?.blog.content,
 			})
 			editorContext?.setTextEditor(editor);
 		}
@@ -90,7 +91,7 @@ const BlogEditor = () => {
 				if (result.blocks.length) {
 					editorContext.setBlog({
 						...editorContext.blog,
-						content: result
+						content: [result]
 					});
 					editorContext.setEditorState("publish")
 				} else {
@@ -103,7 +104,9 @@ const BlogEditor = () => {
 
 	}
 
-	const handleSaveDraft = async (e: React.MouseEvent<HTMLButtonElement> & { target: HTMLInputElement }) => {
+	const handleSaveDraft = async (e: React.MouseEvent<HTMLButtonElement> & {
+		target: HTMLInputElement
+	}) => {
 		try {
 			if (e.target.className.includes("disable")) {
 				return;
@@ -127,7 +130,7 @@ const BlogEditor = () => {
 						title, banner, des, content, tags, draft: true
 					}
 
-					const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", blogObj, {
+					const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", {...blogObj, id: blog_id }, {
 						headers: {
 							'Authorization': `Bearer ${userContext?.userAuth?.access_token}`
 						}

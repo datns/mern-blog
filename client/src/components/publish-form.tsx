@@ -5,7 +5,7 @@ import Tag from "./tag.tsx";
 import {toast} from "react-hot-toast";
 import axios from "axios";
 import {UserContext} from "../App.tsx";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 const MAX_CHARACTERS = 200;
 const TAG_LIMIT = 10;
@@ -13,6 +13,7 @@ const PublishForm = () => {
 	const editorContext = useContext(EditorContext);
 	const userContext = useContext(UserContext);
 	const navigate = useNavigate();
+	const {blog_id} = useParams();
 
 	const handleCloseEvent = () => {
 		editorContext?.setEditorState("editor");
@@ -61,7 +62,9 @@ const PublishForm = () => {
 		}
 	}
 
-	const publishBlog = async (e: React.MouseEvent<HTMLButtonElement> & { target: HTMLInputElement }) => {
+	const publishBlog = async (e: React.MouseEvent<HTMLButtonElement> & {
+		target: HTMLInputElement
+	}) => {
 		try {
 			if (e.target.className.includes("disable")) {
 				return;
@@ -91,7 +94,10 @@ const PublishForm = () => {
 					title, banner, des, content, tags, draft: false
 				}
 
-				const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", blogObj,  {
+				const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", {
+					...blogObj,
+					id: blog_id
+				}, {
 					headers: {
 						'Authorization': `Bearer ${userContext?.userAuth?.access_token}`
 					}
