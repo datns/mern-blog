@@ -35,6 +35,26 @@ export type User = {
 	_id: string;
 }
 
+export interface Comment {
+	_id: string;
+	blog_id: string;
+	blog_author: string;
+	children: Comment[];
+	commented_by: {
+		personal_info: {
+			fullname: string;
+			profile_img: string;
+			username: string;
+		},
+	},
+	commentedAt: string;
+	updatedAt: string;
+	childrenLevel: number;
+	comment: string;
+	parentIndex?: number;
+	isReplyLoaded: boolean;
+}
+
 export type Blog = {
 	_id: string;
 	title: string;
@@ -47,9 +67,13 @@ export type Blog = {
 	activity: {
 		total_likes: number;
 		total_comments: number;
+		total_parent_comments: number;
 	};
 	blog_id: string;
+	comments: string[];
+	commentsDetail: Comment[]
 }
+
 
 export type BlogContext = {
 	blog: Blog;

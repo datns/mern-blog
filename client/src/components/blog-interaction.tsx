@@ -9,8 +9,6 @@ const BlogInteraction = () => {
 	const blogContext = useContext(BlogContext);
 	const userContext = useContext(UserContext);
 
-	console.log('liked', blogContext?.liked);
-
 	useEffect(() => {
 		async function checkLikeStatus() {
 			try {
@@ -38,20 +36,25 @@ const BlogInteraction = () => {
 
 	const {
 		blog: {title, author, activity: {total_likes, total_comments}, blog_id},
-		setBlog, liked, setLiked
+		setBlog, liked, setLiked, setCommentsWrapper
 	} = blogContext;
 
 	const handleLike = async () => {
 		try {
 			if (userContext?.userAuth?.access_token) {
 				setLiked(current => !current);
-				setBlog(currentBlog => ({
-					...currentBlog,
-					activity: {
-						...currentBlog.activity,
-						total_likes: !liked ? currentBlog.activity.total_likes + 1 : currentBlog.activity.total_likes - 1
+				setBlog(currentBlog =>  {
+					if (currentBlog) {
+						return {
+							...currentBlog,
+							activity: {
+								...currentBlog.activity,
+								total_likes: !liked ? currentBlog.activity.total_likes + 1 : currentBlog.activity.total_likes - 1
+							}
+						}
 					}
-				}))
+					return null
+				})
 
 				const result = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/like-blog", {
 					_id: blogContext?.blog._id,
@@ -85,6 +88,7 @@ const BlogInteraction = () => {
 					<p className="text-xl text-dark-grey">{total_likes}</p>
 
 					<button
+						onClick={() => setCommentsWrapper(pre => !pre)}
 						className="w-10 h-10 rounded-full flex items-center justify-center bg-grey/80"
 					>
 						<i className="fi fi-rr-comment-dots"></i>
