@@ -18,7 +18,6 @@ const CommentCard = ({index, leftVal, data}: CommentCardProps) => {
 		commentedAt,
 		commented_by: {personal_info: {fullname, username: commented_by_username, profile_img}},
 		comment,
-		children,
 		_id,
 	} = data;
 
@@ -80,9 +79,9 @@ const CommentCard = ({index, leftVal, data}: CommentCardProps) => {
 		removeCommentsCards(index + 1);
 	}
 
-	const loadReplies = async ({ skip = 0 } : { skip?: number}) => {
+	const loadReplies = async ({ skip = 0, currentIndex = index } : { skip?: number, currentIndex?: number}) => {
 		try {
-			if (children.length) {
+			if (currentComments[currentIndex].children.length) {
 				hideReplies();
 
 				const result: {
@@ -91,16 +90,15 @@ const CommentCard = ({index, leftVal, data}: CommentCardProps) => {
 					}
 				} = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + '/get-replies', {
 					params: {
-						_id, skip
+						_id: currentComments[currentIndex]._id, skip
 					}
 				})
 
 				if (result) {
 					data.isReplyLoaded = true;
-					console.log('result', result)
 					for ( let i = 0 ; i < result.data.replies.length; i++) {
 						result.data.replies[i].childrenLevel = data.childrenLevel + 1;
-						currentComments.splice(index + 1 + i + skip, 0, result.data.replies[i])
+						currentComments.splice(currentIndex + 1 + i + skip, 0, result.data.replies[i])
 
 					}
 
@@ -146,6 +144,33 @@ const CommentCard = ({index, leftVal, data}: CommentCardProps) => {
 		}
 
 		setReplying(preVal => !preVal);
+	}
+
+	const renderLoadMoreRepliesButton = () => {
+		const parentIndex = getParentIndex();
+
+		if (currentComments[index + 1]) {
+			if (currentComments[index + 1].childrenLevel < currentComments[index].childrenLevel) {
+				if ((index - (parentIndex || 0)) < currentComments[parentIndex|| 0].children.length) {
+					return <button
+						className="text-dark-grey p-2 px-3 hover:bg-grey/30 rounded-md flex items-center gap-2"
+						onClick={() => loadReplies({ skip: index - (parentIndex || 0), currentIndex: parentIndex})}
+					>Load More Replies</button>
+				}
+
+			}
+		} else {
+			if (parentIndex) {
+				if ((index - (parentIndex || 0)) < currentComments[parentIndex|| 0].children.length) {
+					return <button
+						className="text-dark-grey p-2 px-3 hover:bg-grey/30 rounded-md flex items-center gap-2"
+						onClick={() => loadReplies({ skip: index - (parentIndex || 0), currentIndex: parentIndex})}
+					>Load More Replies</button>
+				}
+			}
+		}
+
+
 	}
 
 	return (
@@ -203,6 +228,7 @@ const CommentCard = ({index, leftVal, data}: CommentCardProps) => {
                     </div>
 				}
 			</div>
+			{renderLoadMoreRepliesButton()}
 		</div>
 	)
 }
