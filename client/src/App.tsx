@@ -12,6 +12,7 @@ import NotFoundPage from "./pages/NotFound.tsx";
 import ProfilePage from "./pages/Profile.tsx";
 import BlogPage from "./pages/Blog.tsx";
 import SideNavBar from "./components/side-nav-bar.tsx";
+import ChangePassword from "./pages/ChangePassword.tsx";
 
 export const UserContext = createContext<UserAuthContext | null>(null)
 
@@ -39,7 +40,7 @@ const App = () => {
 					<Route index element={<HomePage/>} />
 					<Route path="settings" element={<SideNavBar />}>
 						<Route path="edit-profile" element={<h1>edit profile</h1>} />
-						<Route path="change-password" element={<h1>change password</h1>} />
+						<Route path="change-password" element={<ChangePassword />} />
 					</Route>
 					<Route path="signin" element={<AuthenticationPage type="sign-in"/>}/>
 					<Route path="signup" element={<AuthenticationPage type="sign-up"/>}/>
