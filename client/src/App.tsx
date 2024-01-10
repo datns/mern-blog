@@ -11,6 +11,7 @@ import SearchPage from "./pages/Search.tsx";
 import NotFoundPage from "./pages/NotFound.tsx";
 import ProfilePage from "./pages/Profile.tsx";
 import BlogPage from "./pages/Blog.tsx";
+import SideNavBar from "./components/side-nav-bar.tsx";
 
 export const UserContext = createContext<UserAuthContext | null>(null)
 
@@ -36,6 +37,10 @@ const App = () => {
 				<Route path="/editor/:blog_id" element={<EditorPage/>}/>
 				<Route path="/" element={<Navbar/>}>
 					<Route index element={<HomePage/>} />
+					<Route path="settings" element={<SideNavBar />}>
+						<Route path="edit-profile" element={<h1>edit profile</h1>} />
+						<Route path="change-password" element={<h1>change password</h1>} />
+					</Route>
 					<Route path="signin" element={<AuthenticationPage type="sign-in"/>}/>
 					<Route path="signup" element={<AuthenticationPage type="sign-up"/>}/>
 					<Route path="search/:query" element={<SearchPage />}/>
