@@ -1,1 +1,1 @@
-Blogging website with MERN stack
+**Blogging website with MERN stack**
