@@ -18,6 +18,7 @@ export type User = {
 		profile_img: string;
 		username: string;
 		bio: string;
+		email: string;
 	},
 	social_links: {
 		youtube: string;
